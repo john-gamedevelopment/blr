@@ -1,0 +1,40 @@
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+local inGameUI = playerGui:WaitForChild("InGameUI")
+local scoreboard = inGameUI:WaitForChild("Scoreboard")
+local awayLabel = scoreboard:WaitForChild("Away"):WaitForChild("TextLabel")
+local homeLabel = scoreboard:WaitForChild("Home"):WaitForChild("TextLabel")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local teamService = replicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("TeamService"):WaitForChild("RE"):WaitForChild("Select")
+
+local lastWinningTeam = "It's a tie!"
+
+local function checkScores()
+    while true do
+        local awayScore = tonumber(awayLabel.Text) or 0
+        local homeScore = tonumber(homeLabel.Text) or 0
+        local winningTeam = "It's a tie!"
+        
+        if awayScore > homeScore then
+            winningTeam = "Away"
+        elseif homeScore > awayScore then
+            winningTeam = "Home"
+        end
+        
+        if winningTeam ~= lastWinningTeam and winningTeam ~= "It's a tie!" then
+            print(winningTeam .. " is now in the lead!")
+            lastWinningTeam = winningTeam
+            
+            for _, position in ipairs({"LW", "CM", "RW", "GK"}) do
+                local args = {winningTeam, position}
+                teamService:FireServer(unpack(args))
+                wait(0.5) -- small delay to prevent rapid firing
+            end
+        end
+        
+        wait(1) -- check every second
+    end
+end
+
+spawn(checkScores)
